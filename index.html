@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Clover Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="node_modules/aos/dist/aos.css" />
+    <!-- AOS JS (local) -->
+</head>
+<body>
+    <div class="container ">
+        
+        <header>
+            <img src="./view/Lucky_Clover_logo_fond_sombre.png" alt="logo lucky clover" width="150" data-aos="fade-down" data-aos-duration="1000" >
+            <nav>
+                <a href="index.html" data-aos="fade-down" data-aos-duration="1500" >ACCUEIL</a>
+                <a href="./view/project.html" data-aos="fade-down" data-aos-duration="2000" >PROJETS</a>
+                <a href="./view/about.html" data-aos="fade-down" data-aos-duration="2500" >A PROPOS</a>
+                <a href="./view/feature.html" data-aos="fade-down" data-aos-duration="3000">FEATURE</a>
+            </nav>
+            <div>
+                <select name="" id="" data-aos="fade-down" data-aos-duration="2500" >
+                    <option value="">THEME</option>
+                    <option value="dark">SOMBRE</option>
+                    <option value="white">CLAIRE</option>
+                </select>
+                <button class="signing-btn" data-aos="fade-down" data-aos-duration="3000" >S'INSCRIRE</button>
+            </div>
+        </header>
+    </div>
+
+    <!-- Exemples d'éléments animés avec AOS -->
+    <main>
+        <div class="content">
+            <div 
+            data-aos="fade-zoom-in"
+            data-aos-easing="ease-in-back"
+            data-aos-delay="300"
+            data-aos-offset="0"
+            data-aos-duration="1500"
+            class="tag-box">
+                <div class="tag">CATALOGUE</div>
+            </div>
+                <h1 data-aos="fade-zoom-in"
+                    data-aos-easing="ease-in-back"
+                    data-aos-delay="300"
+                    data-aos-offset="0"
+                    data-aos-duration="2000">
+                    LUCKY CLOVER  <br> <span class="title">STORE</span>
+                </h1>
+            <P data-aos="fade-zoom-in"
+                    data-aos-easing="ease-in-back"
+                    data-aos-delay="300"
+                    data-aos-offset="0"
+                    data-aos-duration="2500" class="description">
+                Découvrez l'intégralité des réalisations produites par le studio lucky clover. Les projets exitant, ceux en gestation et les projets avenir. Et vivez le fil de developpement avec un appercu de notre workflow.
+            </P>
+            <div data-aos="fade-zoom-in"
+                    data-aos-easing="ease-in-back"
+                    data-aos-delay="300"
+                    data-aos-offset="0"
+                    data-aos-duration="3000"class="buttons">
+                <a href="#" class="btn-started">Realisations</a>
+                <a href="#" class="btn-started">Workflow</a>
+                <a href="#" class="btn-started">Future</a>
+                <a href="#" class="btn-signing">S'inscrire</a>
+
+            </div>
+        </div>
+    </main>
+    <!-- <section id="realisations">
+
+    </section>
+    <section id="workflow">
+        
+    </section>
+    <section id="future">
+        
+    </section> -->
+
+   
+</body>
+ <!-- AOS JS: utilise la version locale installée dans node_modules -->
+    <script src="node_modules/aos/dist/aos.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                once: true
+            });
+        });
+    </script>
+</html>
