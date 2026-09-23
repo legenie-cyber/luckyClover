@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrousel</title>
+<style>
+  :root{
+    --bg: #101215;
+    --panel: #16191e;
+    --panel-2: #1c2027;
+    --text: #f2f1ec;
+    --text-dim: #9a9fa8;
+    --accent: #E8543B;
+    --accent-soft: #E8543B33;
+    --radius: 22px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+  }
+  .app{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: clamp(10px, 2vh, 24px);
+    padding: 12px 16px;
+  }
+
+  /* ---------- STAGE (grand conteneur d'information) ---------- */
+  .stage{
+    position:relative;
+    /* width: min(680px, 92vw); */
+    /* height: clamp(600px, 70vh, 660px); */
+    border-radius: var(--radius);
+    /* background: var(--panel); */
+    overflow:hidden;
+    /* border: 1px solid #ffffff12; */
+    display:flex;
+    align-items:center;
+    padding: clamp(20px, 4vw, 40px);
+    gap: clamp(16px, 4vw, 32px);
+  }
+  /* floutage 1 : halo flouté derriere le conteneur, teinte = couleur de la card en avant */
+  .stage-glow{
+    position:absolute;
+    inset: -40%;
+    background: radial-gradient(closest-side, var(--accent) 0%, transparent 70%);
+    opacity: .35;
+    filter: blur(60px);
+    transition: background 600ms ease, opacity 600ms ease;
+    pointer-events:none;
+  }
+  .stage-icon{
+    position:relative;
+    flex: 0 0 auto;
+    width: clamp(84px, 14vw, 120px);
+    height: clamp(84px, 14vw, 120px);
+    border-radius: 18px;
+    background: var(--panel-2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border: 1px solid #ffffff14;
+    transition: box-shadow 500ms ease;
+    box-shadow: 0 0 0 0 transparent;
+  }
+  .stage-icon svg{
+    width: 46%;
+    height: 46%;
+    stroke: var(--accent);
+    transition: stroke 500ms ease, filter 400ms ease, opacity 400ms ease, transform 400ms ease;
+  }
+  .stage-body{
+    position:relative;
+    flex:1;
+    min-width:200px;
+  }
+  .stage-eyebrow{
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--text-dim);
+    margin: 0 0 6px 0;
+    transition: opacity 300ms ease, filter 300ms ease;
+  }
+  .stage-title{
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    line-height: 1.1;
+    transition: opacity 350ms ease, filter 350ms ease, transform 350ms ease;
+  }
+  .stage-sub{
+    margin: 0 0 14px 0;
+    color: var(--text-dim);
+    font-size: 14px;
+    max-width: 46ch;
+    transition: opacity 350ms ease, filter 350ms ease;
+  }
+  .stage-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 8px;
+    list-style:none;
+    padding:0; margin:0;
+    transition: opacity 350ms ease, filter 350ms ease;
+  }
+  .stage-meta li{
+    font-size: 12px;
+    padding: 5px 11px;
+    border-radius: 100px;
+    background: var(--panel-2);
+    border: 1px solid #ffffff14;
+    color: var(--text);
+  }
+  .stage-body.is-switching .stage-title,
+  .stage-body.is-switching .stage-sub,
+  .stage-body.is-switching .stage-meta,
+  .stage-body.is-switching .stage-eyebrow{
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(4px);
+  }
+  .stage-icon.is-switching svg{
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(.85);
+  }
+
+  /* ---------- CAROUSEL ---------- */
+  .carousel-row{
+    display:flex;
+    align-items:center;
+    gap: clamp(8px, 2vw, 20px);
+    width: min(920px, 96vw);
+  }
+  .nav-btn{
+    flex: 0 0 auto;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--panel);
+    border: 1px solid #ffffff18;
+    color: var(--text);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: background 200ms ease, transform 150ms ease, border-color 300ms ease;
+    position: relative;
+    z-index: 9;
+  }
+  .nav-btn:hover{ background: var(--panel-2); }
+  .nav-btn:active{ transform: scale(.92); }
+  .nav-btn svg{ width:18px; height:18px; stroke: var(--text); }
+
+  .carousel{
+    position:relative;
+    flex:1;
+    height: clamp(190px, 26vh, 230px);
+    touch-action: pan-y;
+    cursor: grab;
+    user-select:none;
+    perspective: 1200px;
+  }
+  .carousel:active{ cursor: grabbing; }
+
+  .card{
+    position:absolute;
+    top:50%; left:50%;
+    width: clamp(120px, 15vw, 168px);
+    height: clamp(150px, 20vw, 200px);
+    margin-left: calc(clamp(120px, 15vw, 168px) / -2);
+    margin-top: calc(clamp(150px, 20vw, 200px) / -2);
+    border-radius: 18px;
+    background: var(--panel);
+    border: 1px solid #ffffff14;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 14px;
+    will-change: transform, filter, opacity;
+  }
+  .card.snap{ transition: transform 520ms cubic-bezier(.22,.9,.32,1), filter 520ms ease, opacity 520ms ease; }
+  .card-icon{
+    width: 46px; height:46px;
+    border-radius: 12px;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--panel-2);
+  }
+  .card-icon svg{ width: 50%; height:50%; }
+  .card-label{
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: .02em;
+  }
+  .card-bar{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height: 3px;
+    border-radius: 0 0 18px 18px;
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+  .card.is-front .card-bar{ opacity: 1; }
+  .card.is-front .card-label{ color: var(--text); }
+
+  /* ---------- PROGRESS DOTS ---------- */
+  .dots{
+    display:flex;
+    gap:7px;
+  }
+  .dot{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:#ffffff26;
+    transition: background 300ms ease, transform 300ms ease, width 300ms ease;
+  }
+  .dot.is-active{
+    width:18px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .card, .stage-glow, .stage-icon svg, .stage-title, .stage-sub, .stage-meta, .stage-eyebrow{
+      transition: none !important;
+    }
+  }
+
+  @media screen and (max-width: 550px) {
+    .stage{
+      position: relative;
+    }
+    .stage-body{
+      position: absolute;
+      width: 100%;
+      bottom: 0;
+      padding-top: 5px;
+      padding-left: 12rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 55px rgba(192, 192, 192, 0.338);
+    }
+    
+    .carousel{
+      height: 8rem;
+    }
+  }
+
+  @media screen and (max-width: 930px){
+  .stage-body{
+    left: 8rem
+  }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Grand conteneur : infos de la card en avant -->
+  <div class="stage-glow" id="stageGlow"></div>
+  <div class="stage">
+    <!-- <div class="stage-icon" id="stageIcon"></div> -->
+    <div class="stage-body" id="stageBody">
+      <p class="stage-eyebrow" id="stageEyebrow"></p>
+      <h1 class="stage-title" id="stageTitle"></h1>
+      <p class="stage-sub" id="stageSub"></p>
+      <ul class="stage-meta" id="stageMeta"></ul>
+    </div>
+    <img class="stage-img" id="stageImg" width="400">
+  </div>
+
+  <!-- Carrousel -->
+  <div class="carousel-row">
+    <button class="nav-btn" id="prevBtn" aria-label="Précédent">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+
+    <div class="carousel" id="carousel"></div>
+
+    <button class="nav-btn" id="nextBtn" aria-label="Suivant">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+
+  <div class="dots" id="dots"></div>
+</div>
+
+<script>
+/* =========================================================
+   DONNÉES — modifie ce tableau pour changer le contenu.
+   Chaque élément peut avoir n'importe quel nombre d'items,
+   le carrousel boucle à l'infini quel que soit le total.
+========================================================= */
+const items = [
+  {
+    id: 'game',
+    title: 'Heidy lucky',
+    eyebrow: 'Game Master, Game Developer',
+    subtitle: 'Chef de projet et développement de jeux vidéo',
+    meta: ['Unity', 'Godot', '12 builds'],
+    color: '#E8543B',
+    icon: `<path d="M6 12h4M8 10v4M15 13h.01M18 11h.01" stroke-linecap="round"/><rect x="2" y="7" width="20" height="10" rx="5"/>`,
+    img: "./silhouette-humaine.svg"
+
+  },
+  {
+    id: 'sc',
+    title: 'James',
+    eyebrow: 'Deployer',
+    subtitle: 'Présence et réseau sur les plateformes sociales',
+    meta: ['3 plateformes', '2.4k abonnés'],
+    color: '#3E7CB1',
+    icon: `<path d="M18 6a3 3 0 100-6 3 3 0 000 6z"/><path d="M6 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M18 21a3 3 0 100-6 3 3 0 000 6z"/><path d="M8.6 13.5l6.8-4M8.6 10.5l6.8 4"/>`,
+    img: "./silhouette-masculine.svg"
+  },
+  {
+    id: 'dev',
+    title: 'Rudy',
+    eyebrow: 'Déveloper',
+    subtitle: 'Développement des jeux et outillage',
+    meta: ['Web', 'Scripts', 'Automatisation'],
+    color: '#4FAE7E',
+    icon: `<path d="M8 4L2 12l6 8M16 4l6 8-6 8" stroke-linecap="round" stroke-linejoin="round"/>`,
+    img: "./silhouette-humaine.svg"
+  },
+  {
+    id: 'io',
+    title: 'Dan',
+    eyebrow: 'IO, CTO',
+    subtitle: 'Import, export et synchronisation de données',
+    meta: ['Sync', 'API', 'Transfert'],
+    color: '#B98CCE',
+    icon: `<path d="M4 7h11M15 7l-3-3M15 7l-3 3" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 17H9M9 17l3-3M9 17l3 3" stroke-linecap="round" stroke-linejoin="round"/>`,
+    img: "./silhouette-humaine.svg"
+  }
+];
+
+/* =========================================================
+   CONFIG
+========================================================= */
+const VISIBLE_COUNT = 5;          // nombre de cards affichées en même temps
+const HALF = Math.floor(VISIBLE_COUNT / 2);
+const SPACING = 108;              // écart horizontal entre deux cards (px)
+const WHEEL_THRESHOLD = 60;       // sensibilité de la molette
+
+const carousel = document.getElementById('carousel');
+const stageGlow = document.getElementById('stageGlow');
+// const stageIcon = document.getElementById('stageIcon');
+const stageImg = document.getElementById('stageImg');
+const stageBody = document.getElementById('stageBody');
+const stageEyebrow = document.getElementById('stageEyebrow');
+const stageTitle = document.getElementById('stageTitle');
+const stageSub = document.getElementById('stageSub');
+const stageMeta = document.getElementById('stageMeta');
+const dotsWrap = document.getElementById('dots');
+
+let position = 0;      // position flottante (peut aller à l'infini, + ou -)
+let isDragging = false;
+let dragStartX = 0;
+let dragStartPos = 0;
+let currentFront = null;
+let wheelAccum = 0;
+let raf = null;
+
+/* util: distance circulaire la plus courte entre i et position, modulo N */
+function circularOffset(i, pos, n){
+  let raw = i - pos;
+  raw = ((raw % n) + n) % n;
+  if (raw > n / 2) raw -= n;
+  return raw;
+}
+
+function mod(n, m){ return ((n % m) + m) % m; }
+
+/* --- construit les cards une fois --- */
+const n = items.length;
+const cardEls = items.map((item) => {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = `
+    <div class="card-icon" style="background:${item.color}22">
+      <svg viewBox="0 0 24 24" fill="none" stroke="${item.color}" stroke-width="1.8">${item.icon}</svg>
+    </div>
+    <div class="card-label">${item.title}</div>
+    <div class="card-bar" style="background:${item.color}"></div>
+  `;
+  el.addEventListener('click', () => {
+    const idx = items.indexOf(item);
+    goTo(nearestEquivalent(idx, position));
+  });
+  carousel.appendChild(el);
+  return el;
+});
+
+/* points de pagination */
+const dotEls = items.map((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.addEventListener('click', () => goTo(nearestEquivalent(i, position)));
+  dotsWrap.appendChild(d);
+  return d;
+});
+
+/* trouve la valeur de position équivalente à l'index i la plus proche de "from" (pour boucle infinie fluide) */
+function nearestEquivalent(i, from){
+  const base = mod(i, n);
+  let candidate = base;
+  while (candidate - from > n/2) candidate -= n;
+  while (from - candidate > n/2) candidate += n;
+  return candidate;
+}
+
+function render(withTransition){
+  const frontIndex = mod(Math.round(position), n);
+
+  cardEls.forEach((el, i) => {
+    const off = circularOffset(i, position, n);
+    const absOff = Math.abs(off);
+    const visible = absOff <= HALF + 0.99;
+
+    const scale = Math.max(0.55, 1 - absOff * 0.16);
+    const blur = Math.min(9, absOff * 3.2);
+    const opacity = visible ? Math.max(0, 1 - Math.max(0, absOff - HALF) / 1) : 0;
+    const x = off * SPACING;
+    const z = -absOff * 40;
+
+    el.classList.toggle('snap', !!withTransition);
+    el.style.transform = `translate3d(${x}px, 0, ${z}px) scale(${scale})`;
+    el.style.filter = `blur(${blur}px)`;
+    el.style.opacity = opacity;
+    el.style.zIndex = 100 - Math.round(absOff * 10);
+    el.classList.toggle('is-front', i === frontIndex && absOff < 0.5);
+  });
+
+  dotEls.forEach((d, i) => d.classList.toggle('is-active', i === frontIndex));
+
+  if (frontIndex !== currentFront){
+    currentFront = frontIndex;
+    updateStage(items[frontIndex]);
+  }
+}
+
+function updateStage(item){
+  stageGlow.style.background = `radial-gradient(closest-side, ${item.color} 0%, transparent 70%)`;
+  document.documentElement.style.setProperty('--accent', item.color);
+
+  stageBody.classList.add('is-switching');
+  // stageIcon.classList.add('is-switching');
+
+  setTimeout(() => {
+    stageEyebrow.textContent = item.eyebrow;
+    stageTitle.textContent = item.title;
+    stageImg.src = item.img
+    stageSub.textContent = item.subtitle;
+    stageMeta.innerHTML = item.meta.map(m => `<li>${m}</li>`).join('');
+    // stageIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="${item.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${item.icon}</svg>`;
+
+    requestAnimationFrame(() => {
+      stageBody.classList.remove('is-switching');
+      // stageIcon.classList.remove('is-switching');
+    });
+  }, 180);
+}
+
+function goTo(target){
+  position = target;
+  render(true);
+}
+
+function step(dir){
+  goTo(Math.round(position) + dir);
+}
+
+/* ---------- navigation boutons / clavier ---------- */
+document.getElementById('prevBtn').addEventListener('click', () => step(-1));
+document.getElementById('nextBtn').addEventListener('click', () => step(1));
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+});
+
+/* ---------- molette (scroll = pagination infinie) ---------- */
+carousel.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  wheelAccum += e.deltaY !== 0 ? e.deltaY : e.deltaX;
+  if (Math.abs(wheelAccum) > WHEEL_THRESHOLD){
+    step(wheelAccum > 0 ? 1 : -1);
+    wheelAccum = 0;
+  }
+}, { passive: false });
+
+/* ---------- drag / touch ---------- */
+function pointerDown(x){
+  isDragging = true;
+  dragStartX = x;
+  dragStartPos = position;
+  carousel.style.cursor = 'grabbing';
+}
+function pointerMove(x){
+  if (!isDragging) return;
+  const dx = x - dragStartX;
+  position = dragStartPos - dx / SPACING;
+  render(false);
+}
+function pointerUp(){
+  if (!isDragging) return;
+  isDragging = false;
+  carousel.style.cursor = 'grab';
+  goTo(Math.round(position));
+}
+
+carousel.addEventListener('pointerdown', (e) => pointerDown(e.clientX));
+window.addEventListener('pointermove', (e) => pointerMove(e.clientX));
+window.addEventListener('pointerup', pointerUp);
+
+render(true);
+</script>
+</body>
+</html>

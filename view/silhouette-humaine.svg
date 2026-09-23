@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" aria-label="Silhouette humaine" role="img">
+  <title>Silhouette humaine</title>
+  <g fill="#000000">
+    <circle cx="120" cy="52" r="32"/>
+    <path d="M92 98C101 86 110 82 120 82C130 82 139 86 148 98L176 188C180 203 176 220 164 234L146 254C141 260 137 268 137 276V300H103V276C103 268 99 260 94 254L76 234C64 220 60 203 64 188L92 98Z"/>
+    <path d="M82 118L48 196L68 206L96 136L112 168L112 238H90L82 118Z"/>
+    <path d="M158 118L192 196L172 206L144 136L128 168L128 238H150L158 118Z"/>
+    <path d="M109 238L92 300H122L134 238H109Z"/>
+    <path d="M131 238L148 300H118L106 238H131Z"/>
+  </g>
+</svg>
